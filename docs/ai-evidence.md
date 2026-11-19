@@ -11,3 +11,13 @@
 - **Human Challenge:** "The rubric strictly forbids fixed sleeps. The GitHub runner is being blocked by Cloudflare (403)."
 - **Correction Applied:** Implemented `safeJson()` to parse HTML errors and fail gracefully, and added the RCA rule for `THIRD_PARTY_DEPENDENCY`.
 - **Decision:** Approved. The pipeline now diagnoses the WAF block instead of hiding it with timeouts.
+
+## Evidence collection status
+
+The assessment requires at least five representative, real prompt/output examples with human challenges, corrections, and approval decisions. Two are recorded above; three are still required. Do not fill the entries below from hypothetical conversations.
+
+| Evidence | Prompt and initial output | Human challenge and correction | Decision / reviewer |
+|---|---|---|---|
+| 3 | Pending capture | Pending capture | Pending |
+| 4 | Pending capture | Pending capture | Pending |
+| 5 | Pending capture | Pending capture | Pending |

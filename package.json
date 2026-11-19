@@ -11,6 +11,7 @@
     "test:ui": "playwright test tests/ui",
     "test:api": "playwright test tests/api",
     "test:integration": "playwright test tests/integration",
+    "test:rca": "playwright test tests/rca",
     "test:smoke": "playwright test --grep @smoke",
     "test:p0": "playwright test --grep @p0",
     "test:headed": "playwright test --headed",

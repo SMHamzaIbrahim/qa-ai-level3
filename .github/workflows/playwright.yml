@@ -16,7 +16,6 @@ jobs:
     timeout-minutes: 35
     permissions:
       contents: read
-      pull-requests: write
 
     steps:
       - name: Checkout code
@@ -37,6 +36,9 @@ jobs:
       - name: Type check
         run: npx tsc --noEmit
 
+      - name: Lint
+        run: npm run lint
+
       - name: Run Playwright Tests
         id: tests
         # The `continue-on-error` is true so that the workflow doesn't stop here if tests fail.
@@ -48,10 +50,8 @@ jobs:
         if: always()
         run: npm run rca:collect
 
-      - name: AI-assisted RCA (Optional LLM / Model-Free Fallback)
+      - name: RCA analysis (Model-Free Fallback)
         if: always()
-        env:
-          AI_API_KEY: ${{ secrets.AI_API_KEY }}
         run: npm run rca:analyze
 
       - name: Upload Reports and Traces

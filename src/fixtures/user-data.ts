@@ -26,7 +26,7 @@ export interface TestUser {
  * The email embeds a UUID so cleanup can find it if needed, and to avoid duplicate-registration collisions.
  */
 export function generateTestUser(prefix = 'qa'): TestUser {
-  const id = randomUUID().split('-')[0];
+  const id = randomUUID();
   const email = `${prefix}.${id}@example-test.invalid`;
   return {
     name: `QA ${id}`,

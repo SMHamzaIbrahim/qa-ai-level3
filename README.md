@@ -85,6 +85,17 @@ To run only the API tests:
 npx playwright test tests/api
 ```
 
+To run the UI/API consistency test:
+```bash
+npm run test:integration
+```
+
+To run local-only RCA and controlled fault-injection checks:
+```bash
+npm run test:rca
+```
+FI-02 aborts navigation inside Playwright and does not send a request to the public site.
+
 ### 4. Running a specific Scenario (e.g., "Login")
 Every test has a "Tag" or ID (like `AE-02`). If you only want to run the login tests, you can use the `-g` (grep) flag:
 ```bash
@@ -149,7 +160,7 @@ Instead of writing the "click the blue button, then type in the red box" instruc
 ## Part 6: Troubleshooting & Known Issues
 
 **1. I get an error saying "Execution Policy" when running a command in VS Code.**
-*   *Fix:* Open PowerShell as an Administrator and run: `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Unrestricted`. Click 'Yes' when prompted.
+*   *Fix:* If PowerShell blocks an npm script, run `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned`. This changes the policy only for your user; avoid `Unrestricted`.
 
 **2. The website is blocked or returning a "Queue Full" page.**
 *   *Cause:* Automation Exercise is a public practice site. Sometimes it gets overloaded with too many bots. 
@@ -173,8 +184,11 @@ Instead of writing the "click the blue button, then type in the red box" instruc
 | Run all tests invisibly (Headless) | `npx playwright test` |
 | Run all tests visibly (Headed) | `npx playwright test --headed` |
 | Run only API tests | `npx playwright test tests/api` |
+| Run integration tests | `npm run test:integration` |
+| Run local RCA checks | `npm run test:rca` |
 | Run only Smoke tests | `npx playwright test --grep @smoke` |
 | Run a specific test (e.g., AE-01) | `npx playwright test -g "AE-01"` |
 | View the test results report | `npx playwright show-report` |
 | Run the RCA failure collector | `npm run rca:collect` |
+| Type-check and lint | `npm run typecheck && npm run lint` |
 ```

@@ -1,19 +1,26 @@
 import { test as base, APIRequestContext } from '@playwright/test';
 import { TestUser, generateTestUser } from './user-data';
+import { AutomationExerciseApi } from '../api/AutomationExerciseApi';
+import { log, redact } from '../utils/logger';
 
 export interface AccountFixtures {
   newUser: TestUser;
   apiContext: APIRequestContext;
+  api: AutomationExerciseApi;
+  trackAccount: (user: TestUser) => void;
   registerUser: (user?: TestUser) => Promise<TestUser>;
+  diagnostics: void;
 }
 
 export const test = base.extend<AccountFixtures>({
-  newUser: async ({}, use) => {
+  newUser: async ({ playwright }, use) => {
+    void playwright;
     await use(generateTestUser());
   },
 
-  apiContext: async ({ playwright, baseURL }, use) => {
-    const apiRoot = process.env.API_URL ?? 'https://automationexercise.com/api';
+  apiContext: async ({ playwright }, use) => {
+    const configuredRoot = process.env.API_URL ?? 'https://automationexercise.com/api';
+    const apiRoot = configuredRoot.endsWith('/') ? configuredRoot : `${configuredRoot}/`;
     const ctx = await playwright.request.newContext({
       baseURL: apiRoot,
       extraHTTPHeaders: { Accept: 'application/json' },
@@ -22,12 +29,84 @@ export const test = base.extend<AccountFixtures>({
     await ctx.dispose();
   },
 
-  registerUser: async ({ page, newUser, baseURL }, use) => {
-    const registered: TestUser[] = [];
+  api: async ({ apiContext }, use) => {
+    await use(new AutomationExerciseApi(apiContext));
+  },
 
+  diagnostics: [
+    async ({ page }, use, testInfo) => {
+      const consoleErrors: string[] = [];
+      const requestFailures: string[] = [];
+
+      page.on('console', (message) => {
+        if (message.type() === 'error') consoleErrors.push(redact(message.text()));
+      });
+      page.on('requestfailed', (request) => {
+        const url = new URL(request.url());
+        const failure = request.failure()?.errorText ?? 'unknown failure';
+        requestFailures.push(redact(`${request.method()} ${url.origin}${url.pathname}: ${failure}`));
+      });
+
+      await use(undefined);
+      if (testInfo.status === testInfo.expectedStatus) return;
+
+      await testInfo.attach('console-errors.json', {
+        body: JSON.stringify(consoleErrors, null, 2),
+        contentType: 'application/json',
+      });
+      await testInfo.attach('network-failures.json', {
+        body: JSON.stringify(requestFailures, null, 2),
+        contentType: 'application/json',
+      });
+    },
+    { auto: true },
+  ],
+
+  trackAccount: async ({ api }, use, testInfo) => {
+    const accounts = new Map<string, TestUser>();
+    await use((user) => accounts.set(user.email, user));
+
+    const cleanupFailures: string[] = [];
+    for (const [index, user] of [...accounts.values()].reverse().entries()) {
+      try {
+        const result = await api.deleteAccount(user);
+        const outcome =
+          result.body.responseCode === 200
+            ? 'deleted'
+            : result.body.responseCode === 404
+              ? 'not found'
+              : `unexpected response code ${result.body.responseCode}`;
+        const message = redact(`Account cleanup ${outcome}: ${result.body.message ?? 'no message'}`);
+        log.info(message);
+        await testInfo.attach(`account-cleanup-${index + 1}.txt`, {
+          body: message,
+          contentType: 'text/plain',
+        });
+        if (result.body.responseCode !== 200 && result.body.responseCode !== 404) {
+          cleanupFailures.push(message);
+        }
+      } catch (error) {
+        const message = redact(
+          `Account cleanup failed: ${error instanceof Error ? error.message : String(error)}`,
+        );
+        log.error(message);
+        await testInfo.attach(`account-cleanup-${index + 1}.txt`, {
+          body: message,
+          contentType: 'text/plain',
+        });
+        cleanupFailures.push(message);
+      }
+    }
+
+    if (cleanupFailures.length > 0) {
+      throw new Error(cleanupFailures.join('\n'));
+    }
+  },
+
+  registerUser: async ({ page, newUser, trackAccount }, use) => {
     const fn = async (user?: TestUser): Promise<TestUser> => {
       const u = user ?? newUser;
-      await page.goto(`${baseURL}/login`);
+      await page.goto('/login');
       await page.locator('input[data-qa="signup-name"]').fill(u.name);
       await page.locator('input[data-qa="signup-email"]').fill(u.email);
       await page.getByRole('button', { name: 'Signup' }).click();
@@ -48,19 +127,15 @@ export const test = base.extend<AccountFixtures>({
       await page.locator('input[data-qa="city"]').fill(u.city);
       await page.locator('input[data-qa="zipcode"]').fill(u.zipcode);
       await page.locator('input[data-qa="mobile_number"]').fill(u.mobileNumber);
-      
+      trackAccount(u);
       await page.getByRole('button', { name: /create account/i }).click();
       await page.getByText('Account Created!').waitFor();
-      registered.push(u);
+      await page.getByRole('link', { name: /continue/i }).click();
+      await page.getByRole('link', { name: /logout/i }).waitFor({ state: 'visible' });
       return u;
     };
 
     await use(fn);
-
-    // Cleanup (log only, no public delete endpoint)
-    for (const u of registered) {
-      console.log(`[cleanup] account ${u.email} — no public delete endpoint; marked disposable`);
-    }
   },
 });
 

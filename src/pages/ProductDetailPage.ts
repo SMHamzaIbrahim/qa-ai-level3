@@ -7,6 +7,7 @@ export class ProductDetailPage extends BasePage {
   readonly quantityInput: Locator = this.page.locator('input#quantity');
   readonly addToCartButton: Locator = this.page.getByRole('button', { name: /add to cart/i });
   readonly viewCartModalLink: Locator = this.page.getByRole('link', { name: /view cart/i });
+  readonly continueShopping: Locator = this.page.getByRole('button', { name: /continue shopping/i });
   readonly reviewName: Locator = this.page.locator('input#name');
   readonly reviewEmail: Locator = this.page.locator('input#email');
   readonly reviewText: Locator = this.page.locator('textarea#review');
@@ -25,6 +26,10 @@ export class ProductDetailPage extends BasePage {
 
   async viewCart(): Promise<void> {
     await this.viewCartModalLink.click();
+  }
+
+  async continueShoppingFromModal(): Promise<void> {
+    await this.continueShopping.click();
   }
 
   async submitReview(name: string, email: string, text: string): Promise<void> {

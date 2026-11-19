@@ -11,7 +11,7 @@ export interface CartLine {
 
 export class CartPage extends BasePage {
   readonly cartRows: Locator = this.page.locator('#cart_info_table tbody tr');
-  readonly proceedToCheckout: Locator = this.page.getByRole('link', { name: /proceed to checkout/i });
+  readonly proceedToCheckout: Locator = this.page.locator('.check_out');
   readonly emptyCart: Locator = this.page.getByText(/cart is empty/i);
 
   async open(): Promise<void> {

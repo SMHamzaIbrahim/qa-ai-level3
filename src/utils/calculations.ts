@@ -1,8 +1,9 @@
 /** Parse a price string like "Rs. 500" or "$29.99" into a number. */
 export function parsePrice(raw: string): number {
-  const cleaned = raw.replace(/[^\d.]/g, '');
-  const n = Number(cleaned);
-  if (Number.isNaN(n)) throw new Error(`Cannot parse price from "${raw}"`);
+  const amount = raw.match(/\d[\d,]*(?:\.\d+)?/);
+  if (!amount) throw new Error(`Cannot parse price from "${raw}"`);
+  const n = Number(amount[0].replace(/,/g, ''));
+  if (!Number.isFinite(n)) throw new Error(`Cannot parse price from "${raw}"`);
   return n;
 }
 

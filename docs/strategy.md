@@ -10,8 +10,14 @@
 - **P1 (High):** Search, Brand filtering, Contact Form, API CRUD.
 - **P2 (Medium):** Subscriptions, Recommended items.
 
+The 24-scenario catalogue and source-to-test mappings are maintained in [traceability.md](./traceability.md). The UI suite covers 20 scenario IDs; AE-15/16/17 share the full purchase journey, and AE-24 is the UI/API integration scenario.
+
 ## 3. Test Design Approach
 We utilize the Page Object Model (POM) for UI isolation and typed fixtures for API data. Every test generates a unique user (UUID) to prevent data pollution. Assertions go beyond visibility (e.g., checking cart arithmetic, verifying API JSON schemas).
 
 ## 4. AI & RCA Strategy
-Failures are not just logged; they are triaged by a model-free RCA script. The script maps error signatures to 8 specific categories. Any confidence score below 90% triggers a mandatory human-in-the-loop review before patching.
+Failures are triaged by a deterministic, model-free RCA script into eight categories. Low-confidence results and controlled fault injections remain pending human review; assertion mismatches are not sufficient evidence to classify a product defect. The script does not make patches or release decisions.
+
+## 5. Coverage gaps and evidence
+- The public site can block or vary responses; record the exact run and review traces before attributing failures.
+- Human-reviewed FI-01/FI-02 decisions, five prompt/output correction examples, a post-remediation full run, and PR/scheduled-run evidence remain separate submission evidence. See [quality-scorecard.md](./quality-scorecard.md).

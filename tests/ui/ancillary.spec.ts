@@ -7,46 +7,46 @@ import path from 'path';
 import fs from 'fs';
 
 test.describe('Ancillary Features (Reviews, Contact, Subscriptions)', () => {
-  test('AE-18: Product review @p1', async ({ page }) => {
+  test('AE-18: Product review @p1', async ({ page, newUser }) => {
     const productsPage = new ProductsPage(page);
     await productsPage.open();
     await productsPage.openFirstProductDetail();
     
     const detailPage = new ProductDetailPage(page);
-    await detailPage.submitReview('QA Reviewer', 'reviewer@example-test.invalid', 'This is a test review for automation.');
+    await detailPage.submitReview(newUser.name, newUser.email, 'This is a test review for automation.');
     
     await expect(page.getByText(/thank you for your review/i)).toBeVisible();
   });
 
-  test('AE-19: Contact form upload @p1', async ({ page }) => {
-    // Create a dummy file to upload
-    const dummyFilePath = path.join(process.cwd(), 'test-results', 'dummy-upload.txt');
+  test('AE-19: Contact form upload @p1', async ({ page, newUser }, testInfo) => {
+    const dummyFilePath = testInfo.outputPath('dummy-upload.txt');
     fs.mkdirSync(path.dirname(dummyFilePath), { recursive: true });
     fs.writeFileSync(dummyFilePath, 'This is a dummy file for upload testing.');
 
-    const contactPage = new ContactPage(page);
-    await contactPage.open();
-    await contactPage.submitContactForm(
-      'QA Contact',
-      'contact@example-test.invalid',
-      'Test Subject',
-      'This is a test message.',
-      dummyFilePath
-    );
+    try {
+      const contactPage = new ContactPage(page);
+      await contactPage.open();
+      await contactPage.submitContactForm(
+        'QA Contact',
+        newUser.email,
+        'Test Subject',
+        'This is a test message.',
+        dummyFilePath,
+      );
 
-    expect(await contactPage.isSuccessVisible()).toBeTruthy();
-    
-    // Cleanup
-    fs.unlinkSync(dummyFilePath);
+      expect(await contactPage.isSuccessVisible()).toBeTruthy();
+    } finally {
+      if (fs.existsSync(dummyFilePath)) fs.unlinkSync(dummyFilePath);
+    }
   });
 
-  test('AE-20: Subscriptions @p2', async ({ page }) => {
+  test('AE-20: Subscriptions @p2', async ({ page, newUser }) => {
     const homePage = new HomePage(page);
     await homePage.open();
     
     // Scroll to footer subscription
     await page.locator('#susbscribe_email').scrollIntoViewIfNeeded();
-    await homePage.subscribe('subscribe@example-test.invalid');
+    await homePage.subscribe(newUser.email);
     
     await expect(page.getByText(/you have been successfully subscribed!/i)).toBeVisible();
   });

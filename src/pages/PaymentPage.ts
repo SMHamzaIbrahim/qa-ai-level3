@@ -30,14 +30,15 @@ export class PaymentPage extends BasePage {
     await this.orderPlacedHeading.waitFor({ state: 'visible' });
   }
 
-  async downloadInvoiceFile(): Promise<string> {
+  async downloadInvoiceFile(): Promise<{ path: string; suggestedFilename: string }> {
     const [download] = await Promise.all([
       this.page.waitForEvent('download'),
       this.downloadInvoice.click(),
     ]);
     const path = await download.path();
     if (!path) throw new Error('Invoice download returned no path');
-    await this.logAction(`downloaded invoice to ${path}`);
-    return path;
+    const suggestedFilename = download.suggestedFilename();
+    await this.logAction(`downloaded invoice ${suggestedFilename}`);
+    return { path, suggestedFilename };
   }
 }

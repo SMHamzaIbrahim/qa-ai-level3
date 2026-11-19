@@ -37,16 +37,28 @@ export class ProductsPage extends BasePage {
   }
 
   async firstProduct(): Promise<ProductSummary> {
-    const card = this.productCards.first();
+    return this.productAt(0);
+  }
+
+  async productAt(index: number): Promise<ProductSummary> {
+    const card = this.productCards.nth(index);
     const name = (await card.locator('.productinfo p').textContent())?.trim() ?? '';
     const price = (await card.locator('.productinfo h2').textContent())?.trim() ?? '';
-    const id = await card.getAttribute('data-product-id').catch(() => null);
-    return { name, price, productId: id ?? '' };
+    const detailHref = await card
+      .getByRole('link', { name: /view product/i })
+      .getAttribute('href');
+    const productId = detailHref?.match(/\/product_details\/([^/?#]+)/)?.[1];
+    if (!productId) throw new Error(`Could not read the product ID for "${name}"`);
+    return { name, price, productId };
   }
 
   async addFirstProductToCart(): Promise<ProductSummary> {
-    const summary = await this.firstProduct();
-    const card = this.productCards.first();
+    return this.addProductAt(0);
+  }
+
+  async addProductAt(index: number): Promise<ProductSummary> {
+    const summary = await this.productAt(index);
+    const card = this.productCards.nth(index);
     await card.hover();
     await card.getByText(/add to cart/i).first().click();
     await this.viewCartModalLink.waitFor({ state: 'visible' });
@@ -64,7 +76,7 @@ export class ProductsPage extends BasePage {
 
   async openFirstProductDetail(): Promise<void> {
     await this.productCards.first().getByRole('link', { name: /view product/i }).click();
-    await this.waitForReady();
+    await this.page.locator('.product-information h2').waitFor({ state: 'visible' });
   }
 
   async openCategory(categoryName: string, subCategory?: string): Promise<void> {

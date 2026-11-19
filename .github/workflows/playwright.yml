@@ -1,0 +1,76 @@
+name: Playwright QA + AI RCA
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+  schedule:
+    # 05:00 Asia/Karachi is 00:00 UTC. Pakistan does not observe DST.
+    - cron: '0 0 * * *'
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Run Playwright Tests
+        id: tests
+        # The `continue-on-error` is true so that the workflow doesn't stop here if tests fail.
+        # We need the workflow to continue so it can run the RCA steps.
+        continue-on-error: true
+        run: npx playwright test
+
+      - name: Generate deterministic failure bundle
+        if: always()
+        run: npm run rca:collect
+
+      - name: AI-assisted RCA (Optional LLM / Model-Free Fallback)
+        if: always()
+        env:
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+        run: npm run rca:analyze
+
+      - name: Upload Reports and Traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-report-${{ github.run_id }}
+          path: |
+            playwright-report/
+            test-results/
+            reports/rca/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Check Test Result Status
+        if: always()
+        # If the tests step failed, this step will fail the whole pipeline AFTER artifacts are uploaded.
+        run: |
+          if [ "${{ steps.tests.outcome }}" == "failure" ]; then
+            echo "Tests failed. Please check the RCA report."
+            exit 1
+          fi

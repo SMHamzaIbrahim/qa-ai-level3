@@ -1,5 +1,6 @@
-import { Locator } from '@playwright/test';
+import { Locator, test } from '@playwright/test';
 import { BasePage } from './BasePage';
+import { waitForProductGridOrQueueFull } from '../utils/siteAvailability';
 
 export interface ProductSummary {
   name: string;
@@ -22,8 +23,13 @@ export class ProductsPage extends BasePage {
   }
 
   protected async waitForReady(): Promise<void> {
-    // More robust than heading text, as some pages might not have the exact heading
-    await this.page.locator('.features_items').waitFor({ state: 'visible' });
+    if (await waitForProductGridOrQueueFull(this.page)) {
+      await test.info().attach('public-site-queue-full', {
+        body: await this.page.screenshot(),
+        contentType: 'image/png',
+      });
+      test.skip(true, 'The public site displayed its queue-full page; catalog-dependent scenario was not run.');
+    }
   }
 
   async search(term: string): Promise<void> {
@@ -44,9 +50,7 @@ export class ProductsPage extends BasePage {
     const card = this.productCards.nth(index);
     const name = (await card.locator('.productinfo p').textContent())?.trim() ?? '';
     const price = (await card.locator('.productinfo h2').textContent())?.trim() ?? '';
-    const detailHref = await card
-      .getByRole('link', { name: /view product/i })
-      .getAttribute('href');
+    const detailHref = await card.getByRole('link', { name: /view product/i }).getAttribute('href');
     const productId = detailHref?.match(/\/product_details\/([^/?#]+)/)?.[1];
     if (!productId) throw new Error(`Could not read the product ID for "${name}"`);
     return { name, price, productId };
@@ -60,7 +64,10 @@ export class ProductsPage extends BasePage {
     const summary = await this.productAt(index);
     const card = this.productCards.nth(index);
     await card.hover();
-    await card.getByText(/add to cart/i).first().click();
+    await card
+      .getByText(/add to cart/i)
+      .first()
+      .click();
     await this.viewCartModalLink.waitFor({ state: 'visible' });
     await this.logAction(`added to cart: ${summary.name}`);
     return summary;
@@ -75,21 +82,34 @@ export class ProductsPage extends BasePage {
   }
 
   async openFirstProductDetail(): Promise<void> {
-    await this.productCards.first().getByRole('link', { name: /view product/i }).click();
+    await this.productCards
+      .first()
+      .getByRole('link', { name: /view product/i })
+      .click();
     await this.page.locator('.product-information h2').waitFor({ state: 'visible' });
   }
 
   async openCategory(categoryName: string, subCategory?: string): Promise<void> {
-    await this.page.getByRole('link', { name: new RegExp(categoryName, 'i') }).first().click();
+    await this.page
+      .getByRole('link', { name: new RegExp(categoryName, 'i') })
+      .first()
+      .click();
     if (subCategory) {
-      await this.page.getByRole('link', { name: new RegExp(subCategory, 'i') }).first().click();
+      await this.page
+        .getByRole('link', { name: new RegExp(subCategory, 'i') })
+        .first()
+        .click();
     }
     await this.logAction(`opened category ${categoryName}${subCategory ? '/' + subCategory : ''}`);
   }
 
   async openBrand(brandName: string): Promise<void> {
     // Scope to the brand sidebar to avoid strict mode violations
-    await this.page.locator('.brands_products').getByRole('link', { name: new RegExp(brandName, 'i') }).first().click();
+    await this.page
+      .locator('.brands_products')
+      .getByRole('link', { name: new RegExp(brandName, 'i') })
+      .first()
+      .click();
     await this.logAction(`opened brand ${brandName}`);
   }
 }

@@ -1,0 +1,28 @@
+{
+  "scenario_id": "FI-02",
+  "classification": "ENVIRONMENT_OR_NETWORK",
+  "confidence": 0.95,
+  "status": "HYPOTHESIS_PENDING_REVIEW",
+  "symptom": "page.goto: net::ERR_FAILED at https://automationexercise.com/",
+  "evidence": [
+    {
+      "type": "stack_trace",
+      "content": "page.goto: net::ERR_FAILED at https://automationexercise.com/\nCall log:\n\u001b[2m  - navigating to \"https://automationexercise.com/\", waiting until \"load\"\u001b[22m\n"
+    },
+    {
+      "type": "fault_injection",
+      "content": "FI-02"
+    }
+  ],
+  "alternatives": [
+    "Product behavior changed",
+    "Test data or setup is incorrect",
+    "Environment issue"
+  ],
+  "validation": "Verify the locally intercepted request-failure event and confirm no product request was sent.",
+  "recommended_action": "Remove the test-only route interception and rerun the isolated scenario.",
+  "requires_human_approval": true,
+  "retry_count": 0,
+  "run_url": null,
+  "commit_sha": null
+}

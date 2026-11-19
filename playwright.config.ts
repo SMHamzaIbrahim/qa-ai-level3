@@ -15,7 +15,7 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: CI,
   retries: CI ? 1 : 0,
-  workers: CI ? 2 : 3,
+  workers: CI ? 1 : 3,
   reporter: [
     ['list'],
     ['html', { outputFolder: 'playwright-report', open: 'never' }],

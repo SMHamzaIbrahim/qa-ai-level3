@@ -16,8 +16,8 @@ The 24-scenario catalogue and source-to-test mappings are maintained in [traceab
 We utilize the Page Object Model (POM) for UI isolation and typed fixtures for API data. Every test generates a unique user (UUID) to prevent data pollution. Assertions go beyond visibility (e.g., checking cart arithmetic, verifying API JSON schemas).
 
 ## 4. AI & RCA Strategy
-Failures are triaged by a deterministic, model-free RCA script into eight categories. Low-confidence results and controlled fault injections remain pending human review; assertion mismatches are not sufficient evidence to classify a product defect. The script does not make patches or release decisions.
+Failures are triaged into eight categories by OpenAI when `OPENAI_API_KEY` is configured on a trusted main-branch workflow; pull requests and missing credentials use the explicit deterministic fallback. Only bounded, redacted diagnostic text is sent; traces and page content are not. The versioned prompt and validated output are stored as a sanitized audit artifact. Every model-generated classification remains pending human review. Assertion mismatches alone are not sufficient evidence for a product defect, and the analyzer does not make patches or release decisions.
 
 ## 5. Coverage gaps and evidence
 - The public site can block or vary responses; record the exact run and review traces before attributing failures.
-- Human-reviewed FI-01/FI-02 decisions, five prompt/output correction examples, a post-remediation full run, and PR/scheduled-run evidence remain separate submission evidence. See [quality-scorecard.md](./quality-scorecard.md).
+- FI-01/FI-02 classification approvals are recorded in [rca-human-review.md](./rca-human-review.md). Patch validation, five prompt/output correction examples, PR/scheduled-run evidence, and live defense remain separate submission evidence. See [quality-scorecard.md](./quality-scorecard.md).

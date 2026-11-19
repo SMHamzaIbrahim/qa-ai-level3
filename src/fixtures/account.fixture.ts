@@ -86,9 +86,7 @@ export const test = base.extend<AccountFixtures>({
           cleanupFailures.push(message);
         }
       } catch (error) {
-        const message = redact(
-          `Account cleanup failed: ${error instanceof Error ? error.message : String(error)}`,
-        );
+        const message = redact(`Account cleanup failed: ${error instanceof Error ? error.message : String(error)}`);
         log.error(message);
         await testInfo.attach(`account-cleanup-${index + 1}.txt`, {
           body: message,
@@ -110,7 +108,7 @@ export const test = base.extend<AccountFixtures>({
       await page.locator('input[data-qa="signup-name"]').fill(u.name);
       await page.locator('input[data-qa="signup-email"]').fill(u.email);
       await page.getByRole('button', { name: 'Signup' }).click();
-      
+
       // Complete the account-detail form
       await page.locator(u.title === 'Mr' ? '#id_gender1' : '#id_gender2').check();
       await page.locator('input[data-qa="password"]').fill(u.password);
@@ -129,7 +127,7 @@ export const test = base.extend<AccountFixtures>({
       await page.locator('input[data-qa="mobile_number"]').fill(u.mobileNumber);
       trackAccount(u);
       await page.getByRole('button', { name: /create account/i }).click();
-      await page.getByText('Account Created!').waitFor();
+      await page.getByText('Account Created!').waitFor({ state: 'visible', timeout: 30_000 });
       await page.getByRole('link', { name: /continue/i }).click();
       await page.getByRole('link', { name: /logout/i }).waitFor({ state: 'visible' });
       return u;

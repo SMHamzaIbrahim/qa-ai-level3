@@ -40,7 +40,8 @@ function classifyFailure(failure: FailureInput): RCARecord {
   let action = 'Investigate manually.';
   let alternatives = ['Unverified hypothesis'];
 
-  const msg = failure.errorMessage.toLowerCase();
+  const cleanMsg = failure.errorMessage.replace(/\x1b\[[0-9;]*m/g, '');
+  const msg = cleanMsg.toLowerCase();
 
   // Rule-based classification logic (Model-Free Fallback)
   if (msg.includes('net::err_failed') || msg.includes('net::err_connection')) {

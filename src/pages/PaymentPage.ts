@@ -17,6 +17,7 @@ export class PaymentPage extends BasePage {
    * practice site — never real card data, never personal data.
    */
   async payWithDummyCard(nameOnCard: string): Promise<void> {
+    await this.nameOnCard.waitFor({ state: 'visible' });
     await this.nameOnCard.fill(nameOnCard);
     await this.cardNumber.fill('4111 1111 1111 1111');
     await this.cvc.fill('123');
@@ -31,10 +32,7 @@ export class PaymentPage extends BasePage {
   }
 
   async downloadInvoiceFile(): Promise<{ path: string; suggestedFilename: string }> {
-    const [download] = await Promise.all([
-      this.page.waitForEvent('download'),
-      this.downloadInvoice.click(),
-    ]);
+    const [download] = await Promise.all([this.page.waitForEvent('download'), this.downloadInvoice.click()]);
     const path = await download.path();
     if (!path) throw new Error('Invoice download returned no path');
     const suggestedFilename = download.suggestedFilename();

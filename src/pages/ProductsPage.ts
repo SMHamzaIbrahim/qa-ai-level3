@@ -35,6 +35,7 @@ export class ProductsPage extends BasePage {
   async search(term: string): Promise<void> {
     await this.searchInput.fill(term);
     await this.searchButton.click();
+    await this.searchedProductsHeading.waitFor({ state: 'visible' });
     await this.logAction(`searched "${term}"`);
   }
 

@@ -21,21 +21,28 @@
 - **Correction Applied:** Kept the assessment path model-free and documented the deterministic decision matrix, role handoffs, and human authority gates.
 - **Decision:** The repository owner directed that the deterministic fallback remain the assessment mode.
 
+## Evidence 4: User-reported regression gaps and full-suite decision
+
+- **User prompt (recorded):**
+  > AE-04: logout link not found after registration.
+  > AE-12: quantity total expected `2`, but observed `0.2`.
+  > AE-15: checkout stopped at the same line-total mismatch; AE-16 and AE-17 were not reached, so address and invoice behavior remain unverified.
+  > AE-18: product detail heading did not appear during review navigation.
+  >
+  > run these scenarios again and if any fix is required do that please
+- **Assistant output (recorded):** Reported changes to the registration helper, price parsing, checkout/address assertions, and diagnosis of the AE-18 queue page. It explicitly said the full suite had not yet been rerun.
+- **Reviewer decision (recorded):** The owner then asked, “run all the test again now and see if all the cases are passed”. After the assistant reported 34/34 passing with retries disabled, the owner said, “push it to repo.”
+- **Qualification:** This is a real guided correction and validation sequence. The follow-up authorized publishing after a green suite; it is not represented as a line-by-line code review or approval of each individual diff.
+
+## Evidence 5: Narrowing the run #20 RCA decision
+
+- **Initial output:** The deterministic analyzer marked 20 failures as `THIRD_PARTY_DEPENDENCY` and 7 as `LOCATOR_OR_UI_CHANGE`, pending review.
+- **Human correction:** The repository owner approved only the 10 failures with explicit HTTP 403/non-JSON evidence as third-party response failures. The other 17 UI timeouts remain pending.
+- **Reviewer decision:** The limited approval and its evidence boundary are recorded in the [RCA human review record](./rca-human-review.md).
+- **Qualification:** This is review of model-free deterministic RCA output, not an OpenAI prompt/output example. Whether it satisfies the assignment's fifth prompt/correction example is for the evaluator to decide; no provider-backed output is claimed.
+
 ## Evidence collection status
 
-Three genuine conversational AI correction examples are recorded above; two more are still required. Evidence 3 is a real assistant conversation, not an OpenAI API prompt/output pair. Model-free RCA records are not AI prompt examples.
+Four genuine conversational correction examples are documented above. Evidence 5 is an additional human correction to deterministic RCA output, but may not satisfy a requirement specifically for an AI prompt/output pair. The repository owner should confirm evaluator acceptance; no evidence is represented as an OpenAI API prompt/output pair.
 
 The repository now supports model-backed RCA through OpenAI when the GitHub Actions secret is configured. A real provider request will save its sanitized, versioned prompt and validated output as `reports/rca/openai-evidence.json`. An opt-in synthetic provider smoke writes a separate `reports/rca/openai-smoke-evidence.json`; it is not a real application RCA or a qualifying correction example. Capture human challenges, corrections, and decisions only after an actual reviewed run.
-
-## Historical regression correction (supporting context, not counted above)
-
-In the recorded conversation, the user reported AE-04's missing logout state, AE-12's `2` versus `0.2` quantity total, AE-15 stopping before the address/invoice cases, and AE-18's missing product heading. The assistant reported a registration-flow correction, a currency parser fix and unit test, checkout/address/invoice assertions, and an AE-18 rerun that identified a public-site queue page rather than a code defect. The user then requested a full regression run; the assistant reported 34/34 passing and the user requested the change be pushed.
-
-This is genuine human-guided regression history, but the available transcript does not preserve the exact prompt/output pair or an explicit approval of each correction. It is therefore not counted toward the five required prompt/correction examples.
-
-The repository owner also identified a prior duplicate-`test`-declaration correction. The exact assistant output and correction transcript are not present in this evidence bundle, so that episode is not counted until its original interaction is attached.
-
-| Evidence | Prompt and initial output | Human challenge and correction | Decision / reviewer |
-| -------- | ------------------------- | ------------------------------ | ------------------- |
-| 4        | Pending capture           | Pending capture                | Pending             |
-| 5        | Pending capture           | Pending capture                | Pending             |

@@ -29,10 +29,19 @@ FI-01's captured page and exact output are available as [fi-01-before-fix.png](.
 
 Runs #5 and #6 predate the one-worker configuration and post-artifact flaky-test gate. Their green conclusions therefore do not demonstrate retry-free reliability. Their reports and traces are available from the artifact links on each Actions run page.
 
+## FI-01 test-oracle patch validation
+
+This is a local, isolated test-only correction, not a product-code fix. At commit `2566a40e61dfd3ea4dbf2074d39118b5a6fb0bb9`, the targeted test failed with `Expected: 3; Received: 4`, and the captured RCA hypothesis classified the incorrect test expectation as `TEST_SCRIPT_DEFECT`. At commit `3bfffa506fb2593601247676b75af9a0d6e07ce1`, the expected value was corrected and the same targeted test passed with retries disabled.
+
+- Before: [run output](./evidence/fi-01-patch-before-run.txt), [failure screenshot](./evidence/fi-01-patch-before.png), and [RCA hypothesis](./evidence/fi-01-patch-before-hypothesis.json).
+- After: [run output](./evidence/fi-01-patch-after-run.txt) and [passing-test screenshot](./evidence/fi-01-patch-after.png).
+- This demonstrates a reproducible before/after test-oracle repair. Repository-owner review of the patch is still pending; it does not count as a human-approved product fix or change the provisional rubric score.
+
 ## Current limits
 
 - The latest local full suite was 40/40 with retries disabled. The queue-aware skip was not exercised because the target was available; its explicit-message detection is covered by a synthetic-page test. If activated in a future run, the scenario remains a skip, never a pass.
 - Run #4 is a 27-test run with 14 failures and 13 passes; it is distinct from manual run #10, which had 27 failed tests and 13 passes.
 - PR run #20's 10 explicit HTTP 403 response failures were reviewed as third-party response failures. Its 17 UI timeouts remain unclassified; do not infer their cause from the later green run #21.
 - PR run #17, manual run #14, scheduled run #18, and post-merge main runs #19 and #21 are clean CI evidence; PR #1, PR #2, and PR #3 are merged.
+- The FI-01 test-oracle correction above is validated by local before/after runs, but still awaits repository-owner review.
 - No OpenAI provider result or autonomous multi-agent execution is claimed. The model-free decision design is documented in the [AI Decision Matrix](./ai-decision-matrix.md).

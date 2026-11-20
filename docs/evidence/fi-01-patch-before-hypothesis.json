@@ -1,0 +1,28 @@
+{
+  "scenario_id": "FI-01",
+  "classification": "TEST_SCRIPT_DEFECT",
+  "confidence": 0.85,
+  "status": "HYPOTHESIS_PENDING_REVIEW",
+  "symptom": "expect(received).toBe(expected) // Object.is equality",
+  "evidence": [
+    {
+      "type": "stack_trace",
+      "content": "Controlled FI-01 assertion on an isolated local page."
+    },
+    {
+      "type": "fault_injection",
+      "content": "FI-01"
+    }
+  ],
+  "alternatives": [
+    "Product behavior changed",
+    "Test data or setup is incorrect",
+    "Environment issue"
+  ],
+  "validation": "Compare the injected assertion with the observed value, then rerun the corrected assertion.",
+  "recommended_action": "Correct only the test expectation or locator supported by the captured evidence.",
+  "requires_human_approval": true,
+  "retry_count": 0,
+  "run_url": null,
+  "commit_sha": "2566a40e61dfd3ea4dbf2074d39118b5a6fb0bb9"
+}

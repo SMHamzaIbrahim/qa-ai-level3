@@ -4,11 +4,11 @@ import { expectedCartTotal } from '../../src/utils/calculations';
 
 test('FI-01: cart total assertion matches the observed total', async ({ page }, testInfo) => {
   const observedTotal = expectedCartTotal([{ unitPrice: 2, quantity: 2 }]);
-  const expectedTotal = 3;
+  const expectedTotal = 4;
 
   await page.setContent(`<main><h1 data-qa="cart-total">${observedTotal}</h1></main>`);
   const displayedTotal = Number(await page.getByTestId('cart-total').textContent());
-  await testInfo.attach('fi-01-patch-before.png', {
+  await testInfo.attach('fi-01-patch-after.png', {
     body: await page.screenshot(),
     contentType: 'image/png',
   });

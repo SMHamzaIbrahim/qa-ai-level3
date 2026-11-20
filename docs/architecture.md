@@ -26,7 +26,7 @@ flowchart LR
 ## Interfaces and boundaries
 
 - **Decision policy:** See the [AI Decision Matrix](./ai-decision-matrix.md) for executable fallback rules, role handoffs, confidence gates, and authority limits.
-- **Inputs:** scenario IDs and risk tags, Playwright JSON results, stack traces, retry attempts, and artifact paths.
+- **Inputs:** scenario IDs and risk tags, Playwright JSON results, stack traces, retry attempts, captured HTTP error responses, and artifact paths.
 - **Test interfaces:** page objects use the browser `Page`; `AutomationExerciseApi` uses a request context rooted at `API_URL`; fixtures provide unique accounts and attempt account deletion during teardown.
 - **RCA interface:** the collector writes `failures.json` plus collection status; the analyzer validates each record against the exported Zod schema and writes `rca-report.json` and `rca-summary.md`.
 - **Outputs:** Playwright JSON/JUnit/HTML reports, failure media, structured RCA, and versioned sanitized provider prompt/output evidence are uploaded as one workflow artifact.

@@ -34,6 +34,22 @@ test('Unverified locator timeout is a low-confidence hypothesis', () => {
   expect(record.requires_human_approval).toBe(true);
 });
 
+test('HTTP 403 non-JSON response remains a third-party hypothesis pending review', () => {
+  const record = classifyFailure({
+    scenarioId: 'AE-05',
+    testTitle: 'AE-05 API login',
+    errorMessage: 'Error: API returned non-JSON content (HTTP 403): Unexpected end of JSON input',
+    stackTrace: 'API response parsing failed',
+    status: 'unexpected',
+    retryCount: 0,
+  });
+
+  expect(record.classification).toBe('THIRD_PARTY_DEPENDENCY');
+  expect(record.confidence).toBe(0.85);
+  expect(record.status).toBe('HYPOTHESIS_PENDING_REVIEW');
+  expect(record.requires_human_approval).toBe(true);
+});
+
 test('A captured public queue-full page is classified as a third-party dependency', () => {
   expect(isPublicSiteQueueFullText('This website is under heavy load (queue full).')).toBe(true);
   expect(isPublicSiteQueueFullText('The product grid did not load.')).toBe(false);

@@ -2,13 +2,19 @@ name: Playwright QA + AI RCA
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
   workflow_dispatch:
+    inputs:
+      run_openai_smoke:
+        description: Run one synthetic OpenAI connectivity check (requires OPENAI_API_KEY)
+        required: false
+        default: false
+        type: boolean
   schedule:
     # 05:00 Asia/Karachi is 00:00 UTC. Pakistan does not observe DST.
-    - cron: '0 0 * * *'
+    - cron: "0 0 * * *"
 
 jobs:
   qa:
@@ -24,8 +30,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'npm'
+          node-version: "22"
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
@@ -50,9 +56,23 @@ jobs:
         if: always()
         run: npm run rca:collect
 
-      - name: RCA analysis (Model-Free Fallback)
-        if: always()
+      - name: RCA analysis (OpenAI on trusted main events)
+        if: always() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: gpt-4o-mini
         run: npm run rca:analyze
+
+      - name: RCA analysis (model-free for pull requests and non-main refs)
+        if: always() && (github.event_name == 'pull_request' || github.ref != 'refs/heads/main')
+        run: npm run rca:analyze
+
+      - name: OpenAI provider smoke (synthetic input, opt-in)
+        if: always() && github.event_name == 'workflow_dispatch' && inputs.run_openai_smoke && github.ref == 'refs/heads/main'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_MODEL: gpt-4o-mini
+        run: npm run rca:provider-smoke
 
       - name: Upload Reports and Traces
         if: always()
@@ -66,11 +86,12 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-      - name: Check Test Result Status
+      - name: Check Test and Flaky Status
         if: always()
-        # If the tests step failed, this step will fail the whole pipeline AFTER artifacts are uploaded.
+        # Fail after artifacts are uploaded for failed or retry-flaky tests.
         run: |
           if [ "${{ steps.tests.outcome }}" == "failure" ]; then
             echo "Tests failed. Please check the RCA report."
             exit 1
           fi
+          node -e 'const fs = require("node:fs"); const failures = JSON.parse(fs.readFileSync("reports/rca/failures.json", "utf8")); const flaky = failures.filter((failure) => failure.status === "flaky"); if (flaky.length > 0) { console.error(`Refusing to pass CI with ${flaky.length} flaky test(s). See the uploaded RCA artifact.`); process.exit(1); }'

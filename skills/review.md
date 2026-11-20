@@ -17,7 +17,7 @@ To prevent prompt injection, data leakage, and unsafe test practices.
 - **Artifact Hygiene:** Treat traces, videos, screenshots, downloaded invoices, and response bodies as potentially sensitive; use synthetic values and redact text before RCA publication.
 - **No Destructive Actions:** Agents cannot run destructive database queries or delete user accounts outside of disposable test fixtures.
 - **Weak Assertions:** Reject tests that simply check if an element exists without verifying its state or content.
-- **Credential scope:** Never expose CI secrets to pull-request code. The current model-free analyzer needs no external API credential.
+- **Credential scope:** Never expose CI secrets to pull-request code. The OpenAI RCA credential is supplied only on trusted main-branch workflow events; pull requests use the model-free analyzer.
 
 ## Human Checkpoint
 Final security sign-off before a PR is merged.

@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { redact } from '../../src/utils/logger';
+import { isPublicSiteQueueFullText } from '../../src/utils/siteAvailability';
 
 interface Attachment {
   name?: string;
@@ -48,6 +49,7 @@ export interface FailureInput {
   videoPath?: string;
   consoleErrors?: string[];
   networkFailures?: string[];
+  environmentSignals?: string[];
   faultInjectionId?: string;
   runUrl?: string;
   commitSha?: string;
@@ -74,6 +76,30 @@ function attachmentStringArray(attempt: Attempt, name: string): string[] | undef
     throw new Error(`Expected ${name} to contain a JSON string array`);
   }
   return value.map(redact);
+}
+
+function attachmentText(attempt: Attempt, name: string): string | undefined {
+  const attachment = attempt.attachments?.find((item) => item.name === name);
+  if (!attachment) return undefined;
+  if (attachment.body !== undefined) return Buffer.from(attachment.body, 'base64').toString('utf-8');
+  if (!attachment.path) return undefined;
+
+  const resultsRoot = path.resolve(process.cwd(), 'test-results');
+  const attachmentFullPath = path.resolve(process.cwd(), attachment.path);
+  const relativePath = path.relative(resultsRoot, attachmentFullPath);
+  if (relativePath === '..' || relativePath.startsWith(`..${path.sep}`) || path.isAbsolute(relativePath)) {
+    throw new Error(`${name} attachment path must be inside test-results`);
+  }
+  if (!fs.existsSync(attachmentFullPath)) return undefined;
+  return fs.readFileSync(attachmentFullPath, 'utf-8');
+}
+
+function environmentSignals(attempt: Attempt): string[] | undefined {
+  const errorContext = attachmentText(attempt, 'error-context.md');
+  if (errorContext && isPublicSiteQueueFullText(errorContext)) {
+    return ['PUBLIC_SITE_QUEUE_FULL'];
+  }
+  return undefined;
 }
 
 function visitSpecs(results: PlaywrightResults, visit: (spec: Spec) => void): void {
@@ -115,6 +141,7 @@ export function collectFailures(results: PlaywrightResults): FailureInput[] {
         videoPath: attachmentPath(failedAttempt ?? {}, 'video'),
         consoleErrors: attachmentStringArray(failedAttempt ?? {}, 'console-errors.json'),
         networkFailures: attachmentStringArray(failedAttempt ?? {}, 'network-failures.json'),
+        environmentSignals: environmentSignals(failedAttempt ?? {}),
         faultInjectionId: title.match(/FI-\d+/)?.[0],
         runUrl:
           process.env.GITHUB_SERVER_URL && process.env.GITHUB_REPOSITORY && process.env.GITHUB_RUN_ID
@@ -137,8 +164,7 @@ export function collectControlledFaults(results: PlaywrightResults): ControlledF
     for (const test of spec.tests ?? []) {
       const attempt = test.results?.[test.results.length - 1];
       const recordAttachment = attempt?.attachments?.find(
-        (attachment) =>
-          attachment.name === `${id.toLowerCase()}-rca-hypothesis.json` && attachment.body,
+        (attachment) => attachment.name === `${id.toLowerCase()}-rca-hypothesis.json` && attachment.body,
       );
       if (!recordAttachment?.body) continue;
 
@@ -169,7 +195,10 @@ function main(): void {
   fs.mkdirSync(outputDir, { recursive: true });
 
   if (!fs.existsSync(resultsPath)) {
-    const status = { available: false, reason: 'test-results/results.json was not found' };
+    const status = {
+      available: false,
+      reason: 'test-results/results.json was not found',
+    };
     fs.writeFileSync(outputPath, JSON.stringify([], null, 2));
     fs.writeFileSync(controlledFaultPath, JSON.stringify([], null, 2));
     fs.writeFileSync(statusPath, JSON.stringify(status, null, 2));

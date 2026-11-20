@@ -15,7 +15,7 @@ test.describe('Catalogue & Search', () => {
     const productsPage = new ProductsPage(page);
     await productsPage.open();
     await productsPage.search('Top');
-    expect(await productsPage.searchedProductsHeading.isVisible()).toBeTruthy();
+    await expect(productsPage.searchedProductsHeading).toBeVisible();
     expect(await productsPage.productCount()).toBeGreaterThan(0);
     const first = await productsPage.firstProduct();
     expect(first.name.toLowerCase()).toContain('top');
@@ -25,7 +25,7 @@ test.describe('Catalogue & Search', () => {
     const productsPage = new ProductsPage(page);
     await productsPage.open();
     await productsPage.search('NonExistentProductXYZ_999');
-    expect(await productsPage.searchedProductsHeading.isVisible()).toBeTruthy();
+    await expect(productsPage.searchedProductsHeading).toBeVisible();
     expect(await productsPage.productCount()).toBe(0);
   });
 

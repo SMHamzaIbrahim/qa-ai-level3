@@ -6,7 +6,7 @@ test('FI-01: cart total assertion matches the observed total', async ({ page }, 
   const observedTotal = expectedCartTotal([{ unitPrice: 2, quantity: 2 }]);
   const expectedTotal = 3;
 
-  await page.setContent(`<main><h1 data-testid="cart-total">${observedTotal}</h1></main>`);
+  await page.setContent(`<main><h1 data-qa="cart-total">${observedTotal}</h1></main>`);
   const displayedTotal = Number(await page.getByTestId('cart-total').textContent());
   await testInfo.attach('fi-01-patch-before.png', {
     body: await page.screenshot(),

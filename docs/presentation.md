@@ -36,7 +36,7 @@
 
 ## Slide 6 — Current readiness
 
-- The [provisional scorecard](./quality-scorecard.md) estimates 86/100; this is a repository self-assessment, not a grader result.
+- The [provisional scorecard](./quality-scorecard.md) estimates 87/100; this is a repository self-assessment, not a grader result.
 - Agent design meets its listed minimum at 11/15 and the provisional total exceeds 85/100; RCA remains below its 14/18 readiness gate.
 - Remaining evidence includes two genuine prompt/output correction examples and the assignment's live defense.
 - Do not infer a 90+ score from the presence of documentation files alone; confirm any score changes with the evaluator.

@@ -23,8 +23,8 @@
 ## Slide 4 — Verification and CI
 
 - Local full suite: 40/40 with retries disabled.
-- [PR run #15](https://github.com/SMHamzaIbrahim/qa-ai-level3/actions/runs/44641389356), [manual run #14](https://github.com/SMHamzaIbrahim/qa-ai-level3/actions/runs/44640839153), and [post-merge main run #16](https://github.com/SMHamzaIbrahim/qa-ai-level3/actions/runs/44645962220) each passed 40/40 and uploaded artifacts.
-- PR #1 is merged. No scheduled run has been observed.
+- [PR run #17](https://github.com/SMHamzaIbrahim/qa-ai-level3/actions/runs/44647344720), [manual run #14](https://github.com/SMHamzaIbrahim/qa-ai-level3/actions/runs/44640839153), [scheduled run #18](https://github.com/SMHamzaIbrahim/qa-ai-level3/actions/runs/44647813438), and [post-merge main run #19](https://github.com/SMHamzaIbrahim/qa-ai-level3/actions/runs/44648398485) each passed 40/40 and uploaded artifacts.
+- PR #1 and PR #2 are merged. Scheduled CI evidence is now available.
 - Earlier failures and flaky runs remain disclosed in the [RCA evidence package](./rca-package.md).
 
 ## Slide 5 — RCA evidence and limits
@@ -36,7 +36,7 @@
 
 ## Slide 6 — Current readiness
 
-- The [provisional scorecard](./quality-scorecard.md) estimates 83/100; this is a repository self-assessment, not a grader result.
+- The [provisional scorecard](./quality-scorecard.md) estimates 84/100; this is a repository self-assessment, not a grader result.
 - Agent design meets its listed minimum at 11/15. The total and RCA score remain below the scorecard's readiness thresholds.
 - Remaining evidence includes two genuine prompt/output correction examples and the assignment's live defense.
 - Do not infer a 90+ score from the presence of documentation files alone; confirm any score changes with the evaluator.

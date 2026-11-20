@@ -24,19 +24,19 @@
 
 - Local full suite: 40/40 with retries disabled.
 - [PR run #17](https://github.com/SMHamzaIbrahim/qa-ai-level3/actions/runs/44647344720), [manual run #14](https://github.com/SMHamzaIbrahim/qa-ai-level3/actions/runs/44640839153), [scheduled run #18](https://github.com/SMHamzaIbrahim/qa-ai-level3/actions/runs/44647813438), and post-merge [main runs #19](https://github.com/SMHamzaIbrahim/qa-ai-level3/actions/runs/44648398485) and [#21](https://github.com/SMHamzaIbrahim/qa-ai-level3/actions/runs/44651006158) each passed 40/40 and uploaded artifacts.
-- PR #20 failed 27/40; its 10 explicit HTTP 403 response failures were reviewed as third-party response failures, while 17 UI timeouts remain pending. PRs #1, #2, and #3 are merged. Scheduled CI evidence is available.
+- PR #20 failed 27/40; its 10 explicit API HTTP 403 response failures and 17 trace-backed UI response hypotheses were approved as third-party classifications. The traces do not establish why Cloudflare denied the UI requests. PRs #1, #2, and #3 are merged. Scheduled CI evidence is available.
 - Earlier failures and flaky runs remain disclosed in the [RCA evidence package](./rca-package.md).
 
 ## Slide 5 — RCA evidence and limits
 
-- Two controlled fault-injection hypotheses, FI-01 and FI-02, and 10 explicit HTTP 403 response failures from PR run #20 were approved by the repository owner.
+- Two controlled fault-injection hypotheses, FI-01 and FI-02, and 27 HTTP 403 response classifications from PR run #20 were approved by the repository owner.
 - The [RCA package](./rca-package.md) links to the FI-01 screenshot, FI-02 JSON/network evidence, and historical CI artifacts.
-- The 12 reviewed classifications do not establish general classification accuracy; 17 timeouts remain pending, and there is no independent evaluation set or production patch validation.
+- The 29 reviewed classifications do not establish general classification accuracy; there is no independent evaluation set or production patch validation.
 - The deterministic fallback requires no API key. No OpenAI provider result is claimed.
 
 ## Slide 6 — Current readiness
 
 - The [provisional scorecard](./quality-scorecard.md) estimates 87/100; this is a repository self-assessment, not a grader result.
-- Agent design meets its listed minimum at 11/15 and the provisional total exceeds 85/100; RCA remains below its 14/18 readiness gate.
-- Remaining evidence includes two genuine prompt/output correction examples and the assignment's live defense.
+- Agent design meets its listed minimum at 11/15, RCA meets its 14/18 threshold, and the provisional total exceeds 85/100.
+- The repository owner confirmed the fifth conversational correction qualifies; evaluator scoring is not independently known. The assignment's live defense remains outstanding.
 - Do not infer a 90+ score from the presence of documentation files alone; confirm any score changes with the evaluator.

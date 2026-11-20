@@ -49,6 +49,7 @@ export interface FailureInput {
   videoPath?: string;
   consoleErrors?: string[];
   networkFailures?: string[];
+  httpResponses?: string[];
   environmentSignals?: string[];
   faultInjectionId?: string;
   runUrl?: string;
@@ -94,12 +95,16 @@ function attachmentText(attempt: Attempt, name: string): string | undefined {
   return fs.readFileSync(attachmentFullPath, 'utf-8');
 }
 
-function environmentSignals(attempt: Attempt): string[] | undefined {
+function environmentSignals(attempt: Attempt, httpResponses: string[] | undefined): string[] | undefined {
+  const signals: string[] = [];
   const errorContext = attachmentText(attempt, 'error-context.md');
   if (errorContext && isPublicSiteQueueFullText(errorContext)) {
-    return ['PUBLIC_SITE_QUEUE_FULL'];
+    signals.push('PUBLIC_SITE_QUEUE_FULL');
   }
-  return undefined;
+  if (httpResponses?.some((response) => /\bHTTP 403\b.*\bserver=cloudflare\b/i.test(response))) {
+    signals.push('PUBLIC_SITE_CLOUDFLARE_403');
+  }
+  return signals.length > 0 ? signals : undefined;
 }
 
 function visitSpecs(results: PlaywrightResults, visit: (spec: Spec) => void): void {
@@ -128,6 +133,7 @@ export function collectFailures(results: PlaywrightResults): FailureInput[] {
       const attempts = test.results ?? [];
       const failedAttempt = attempts.find((attempt) => attempt.error) ?? attempts[attempts.length - 1];
       const error = failedAttempt?.error;
+      const httpResponses = attachmentStringArray(failedAttempt ?? {}, 'http-responses.json');
 
       failures.push({
         scenarioId,
@@ -141,7 +147,8 @@ export function collectFailures(results: PlaywrightResults): FailureInput[] {
         videoPath: attachmentPath(failedAttempt ?? {}, 'video'),
         consoleErrors: attachmentStringArray(failedAttempt ?? {}, 'console-errors.json'),
         networkFailures: attachmentStringArray(failedAttempt ?? {}, 'network-failures.json'),
-        environmentSignals: environmentSignals(failedAttempt ?? {}),
+        httpResponses,
+        environmentSignals: environmentSignals(failedAttempt ?? {}, httpResponses),
         faultInjectionId: title.match(/FI-\d+/)?.[0],
         runUrl:
           process.env.GITHUB_SERVER_URL && process.env.GITHUB_REPOSITORY && process.env.GITHUB_RUN_ID

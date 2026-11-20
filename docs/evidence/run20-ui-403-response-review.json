@@ -1,0 +1,161 @@
+{
+  "source": {
+    "workflow_run": 44649122451,
+    "commit": "9f1a7c487e7a67697aef52c39583f55fd06de111",
+    "artifact": "qa-report-44649122451"
+  },
+  "summary": {
+    "ui_scenarios": 17,
+    "navigation_attempts": 34,
+    "cloudflare_http_403_responses": 34,
+    "hypothesis": "THIRD_PARTY_DEPENDENCY",
+    "confidence": 0.85,
+    "status": "HYPOTHESIS_PENDING_REVIEW",
+    "requires_human_approval": true,
+    "scope": "The traces establish HTTP 403 responses from the Cloudflare edge; they do not establish why the requests were denied.",
+    "human_review": {
+      "decision": "APPROVED",
+      "reviewer": "Repository owner",
+      "review_date": "2026-11-20",
+      "scope": "Approval covers classifying the observed external responses as THIRD_PARTY_DEPENDENCY; it does not determine why Cloudflare denied the requests."
+    }
+  },
+  "scenarios": [
+    {
+      "scenario": "AE-18",
+      "title": "Product review",
+      "path": "/products",
+      "attempts": [0, 1],
+      "statuses": [403, 403],
+      "server": "cloudflare"
+    },
+    {
+      "scenario": "AE-19",
+      "title": "Contact form upload",
+      "path": "/contact_us",
+      "attempts": [0, 1],
+      "statuses": [403, 403],
+      "server": "cloudflare"
+    },
+    {
+      "scenario": "AE-20",
+      "title": "Subscriptions",
+      "path": "/",
+      "attempts": [0, 1],
+      "statuses": [403, 403],
+      "server": "cloudflare"
+    },
+    {
+      "scenario": "AE-21",
+      "title": "Recommended items",
+      "path": "/",
+      "attempts": [0, 1],
+      "statuses": [403, 403],
+      "server": "cloudflare"
+    },
+    {
+      "scenario": "AE-01",
+      "title": "Account registration",
+      "path": "/login",
+      "attempts": [0, 1],
+      "statuses": [403, 403],
+      "server": "cloudflare"
+    },
+    {
+      "scenario": "AE-03",
+      "title": "Invalid login",
+      "path": "/login",
+      "attempts": [0, 1],
+      "statuses": [403, 403],
+      "server": "cloudflare"
+    },
+    {
+      "scenario": "AE-04",
+      "title": "Duplicate registration",
+      "path": "/login",
+      "attempts": [0, 1],
+      "statuses": [403, 403],
+      "server": "cloudflare"
+    },
+    {
+      "scenario": "AE-11",
+      "title": "Cart multiple items",
+      "path": "/products",
+      "attempts": [0, 1],
+      "statuses": [403, 403],
+      "server": "cloudflare"
+    },
+    {
+      "scenario": "AE-12",
+      "title": "Quantity calculation",
+      "path": "/products",
+      "attempts": [0, 1],
+      "statuses": [403, 403],
+      "server": "cloudflare"
+    },
+    {
+      "scenario": "AE-13",
+      "title": "Remove from cart",
+      "path": "/products",
+      "attempts": [0, 1],
+      "statuses": [403, 403],
+      "server": "cloudflare"
+    },
+    {
+      "scenario": "AE-14",
+      "title": "Cart persists on login",
+      "path": "/products",
+      "attempts": [0, 1],
+      "statuses": [403, 403],
+      "server": "cloudflare"
+    },
+    {
+      "scenario": "AE-06",
+      "title": "Product catalogue",
+      "path": "/products",
+      "attempts": [0, 1],
+      "statuses": [403, 403],
+      "server": "cloudflare"
+    },
+    {
+      "scenario": "AE-07",
+      "title": "Search relevance",
+      "path": "/products",
+      "attempts": [0, 1],
+      "statuses": [403, 403],
+      "server": "cloudflare"
+    },
+    {
+      "scenario": "AE-08",
+      "title": "Search empty/invalid",
+      "path": "/products",
+      "attempts": [0, 1],
+      "statuses": [403, 403],
+      "server": "cloudflare"
+    },
+    {
+      "scenario": "AE-09",
+      "title": "Category filtering",
+      "path": "/products",
+      "attempts": [0, 1],
+      "statuses": [403, 403],
+      "server": "cloudflare"
+    },
+    {
+      "scenario": "AE-10",
+      "title": "Brand filtering",
+      "path": "/products",
+      "attempts": [0, 1],
+      "statuses": [403, 403],
+      "server": "cloudflare"
+    },
+    {
+      "scenario": "AE-15/16/17",
+      "title": "Two-item purchase, addresses, and invoice",
+      "path": "/login",
+      "attempts": [0, 1],
+      "statuses": [403, 403],
+      "server": "cloudflare"
+    }
+  ]
+}

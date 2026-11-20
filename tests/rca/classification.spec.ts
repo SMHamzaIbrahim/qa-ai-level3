@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { expect, test } from '@playwright/test';
 import { classifyFailure, classifyFailuresWithOpenAI } from '../../tools/rca/analyze';
 import { collectControlledFaults, collectFailures } from '../../tools/rca/collect';
@@ -48,6 +50,68 @@ test('HTTP 403 non-JSON response remains a third-party hypothesis pending review
   expect(record.confidence).toBe(0.85);
   expect(record.status).toBe('HYPOTHESIS_PENDING_REVIEW');
   expect(record.requires_human_approval).toBe(true);
+});
+
+test('A Cloudflare HTTP 403 trace overrides a locator-timeout hypothesis pending review', () => {
+  const record = classifyFailure({
+    scenarioId: 'AE-18',
+    testTitle: 'AE-18: Product review',
+    errorMessage: 'TimeoutError: locator.waitFor timed out.',
+    stackTrace: 'The product heading did not become visible.',
+    status: 'unexpected',
+    retryCount: 1,
+    httpResponses: ['GET https://automationexercise.com/products: HTTP 403 server=cloudflare'],
+    environmentSignals: ['PUBLIC_SITE_CLOUDFLARE_403'],
+  });
+
+  expect(record.classification).toBe('THIRD_PARTY_DEPENDENCY');
+  expect(record.confidence).toBe(0.85);
+  expect(record.status).toBe('HYPOTHESIS_PENDING_REVIEW');
+  expect(record.requires_human_approval).toBe(true);
+  expect(record.evidence).toContainEqual({
+    type: 'http_responses',
+    content: 'GET https://automationexercise.com/products: HTTP 403 server=cloudflare',
+  });
+});
+
+test('Run #20 UI trace manifest yields 17 pending third-party hypotheses', () => {
+  const manifestPath = path.resolve('docs/evidence/run20-ui-403-response-review.json');
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8')) as {
+    scenarios: Array<{
+      scenario: string;
+      title: string;
+      path: string;
+      attempts: number[];
+      statuses: number[];
+      server: string;
+    }>;
+  };
+  const records = manifest.scenarios.map((scenario) => {
+    const httpResponses = scenario.attempts.map(
+      (_, index) =>
+        `GET https://automationexercise.com${scenario.path}: HTTP ${scenario.statuses[index]} server=${scenario.server}`,
+    );
+    const environmentSignals = httpResponses.some((response) => /\bHTTP 403\b.*\bserver=cloudflare\b/i.test(response))
+      ? ['PUBLIC_SITE_CLOUDFLARE_403']
+      : [];
+
+    return classifyFailure({
+      scenarioId: scenario.scenario,
+      testTitle: `${scenario.scenario}: ${scenario.title}`,
+      errorMessage: 'TimeoutError: locator.waitFor timed out.',
+      stackTrace: 'Trace shows document response HTTP 403 server=cloudflare.',
+      status: 'unexpected',
+      retryCount: 1,
+      httpResponses,
+      environmentSignals,
+    });
+  });
+
+  expect(records).toHaveLength(17);
+  expect(records.every((record) => record.classification === 'THIRD_PARTY_DEPENDENCY')).toBe(true);
+  expect(records.every((record) => record.confidence === 0.85)).toBe(true);
+  expect(records.every((record) => record.status === 'HYPOTHESIS_PENDING_REVIEW')).toBe(true);
+  expect(records.every((record) => record.requires_human_approval)).toBe(true);
 });
 
 test('A captured public queue-full page is classified as a third-party dependency', () => {
@@ -106,6 +170,12 @@ test('Failure collection preserves retry and trace evidence while redacting emai
                         ),
                       },
                       {
+                        name: 'http-responses.json',
+                        body: Buffer.from(
+                          JSON.stringify(['GET https://automationexercise.com/products: HTTP 403 server=cloudflare']),
+                        ).toString('base64'),
+                      },
+                      {
                         name: 'error-context.md',
                         body: Buffer.from('This website is under heavy load (queue full).').toString('base64'),
                       },
@@ -126,7 +196,10 @@ test('Failure collection preserves retry and trace evidence while redacting emai
   expect(failures[0].retryCount).toBe(1);
   expect(failures[0].tracePath).toBe('test-results/trace.zip');
   expect(failures[0].networkFailures).toEqual(['GET https://example.test/api: net::ERR_FAILED']);
-  expect(failures[0].environmentSignals).toEqual(['PUBLIC_SITE_QUEUE_FULL']);
+  expect(failures[0].httpResponses).toEqual([
+    'GET https://automationexercise.com/products: HTTP 403 server=cloudflare',
+  ]);
+  expect(failures[0].environmentSignals).toEqual(['PUBLIC_SITE_QUEUE_FULL', 'PUBLIC_SITE_CLOUDFLARE_403']);
   expect(failures[0].errorMessage).not.toContain('qa.user@example.test');
 });
 
@@ -241,6 +314,7 @@ test('OpenAI RCA sends sanitized evidence and keeps its classification pending r
         status: 'unexpected',
         retryCount: 0,
         networkFailures: ['GET https://example.test/api?token=sample-secret: 503'],
+        httpResponses: ['GET https://example.test/api?token=sample-secret: HTTP 403 server=cloudflare'],
         environmentSignals: ['PUBLIC_SITE_QUEUE_FULL'],
       },
     ],
@@ -259,7 +333,7 @@ test('OpenAI RCA sends sanitized evidence and keeps its classification pending r
   if (result.audit.status !== 'COMPLETED') {
     throw new Error('Expected a completed provider audit');
   }
-  expect(result.audit.prompt_version).toBe('qa-rca-v2');
+  expect(result.audit.prompt_version).toBe('qa-rca-v3');
   expect(requestBody).toContain('PUBLIC_SITE_QUEUE_FULL');
   expect(JSON.stringify(result.audit)).not.toContain('qa.user@example.test');
   expect(JSON.stringify(result.audit)).not.toContain('sample-secret');

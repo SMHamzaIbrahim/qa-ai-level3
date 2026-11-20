@@ -37,9 +37,20 @@ export const test = base.extend<AccountFixtures>({
     async ({ page }, use, testInfo) => {
       const consoleErrors: string[] = [];
       const requestFailures: string[] = [];
+      const httpResponses: string[] = [];
 
       page.on('console', (message) => {
         if (message.type() === 'error') consoleErrors.push(redact(message.text()));
+      });
+      page.on('response', (response) => {
+        if (response.status() < 400) return;
+        const url = new URL(response.url());
+        const server = response.headers().server ?? 'unknown';
+        httpResponses.push(
+          redact(
+            `${response.request().method()} ${url.origin}${url.pathname}: HTTP ${response.status()} server=${server}`,
+          ),
+        );
       });
       page.on('requestfailed', (request) => {
         const url = new URL(request.url());
@@ -56,6 +67,10 @@ export const test = base.extend<AccountFixtures>({
       });
       await testInfo.attach('network-failures.json', {
         body: JSON.stringify(requestFailures, null, 2),
+        contentType: 'application/json',
+      });
+      await testInfo.attach('http-responses.json', {
+        body: JSON.stringify(httpResponses, null, 2),
         contentType: 'application/json',
       });
     },

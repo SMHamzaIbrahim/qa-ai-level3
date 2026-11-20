@@ -34,15 +34,21 @@
 - **Reviewer decision (recorded):** The owner then asked, “run all the test again now and see if all the cases are passed”. After the assistant reported 34/34 passing with retries disabled, the owner said, “push it to repo.”
 - **Qualification:** This is a real guided correction and validation sequence. The follow-up authorized publishing after a green suite; it is not represented as a line-by-line code review or approval of each individual diff.
 
-## Evidence 5: Narrowing the run #20 RCA decision
+## Evidence 5: Revising run #20 after inspecting UI traces
 
-- **Initial output:** The deterministic analyzer marked 20 failures as `THIRD_PARTY_DEPENDENCY` and 7 as `LOCATOR_OR_UI_CHANGE`, pending review.
-- **Human correction:** The repository owner approved only the 10 failures with explicit HTTP 403/non-JSON evidence as third-party response failures. The other 17 UI timeouts remain pending.
-- **Reviewer decision:** The limited approval and its evidence boundary are recorded in the [RCA human review record](./rca-human-review.md).
-- **Qualification:** This is review of model-free deterministic RCA output, not an OpenAI prompt/output example. Whether it satisfies the assignment's fifth prompt/correction example is for the evaluator to decide; no provider-backed output is claimed.
+- **User prompt (recorded):**
+  > and the fifth prompt/correction example may not qualify. The 17 UI timeouts from run #20 also remain unclassified.
+  >
+  > fix these
+- **Initial assistant output:** Reported that the 17 timeouts were unclassified and that the fifth correction example might not satisfy the rubric.
+- **Evidence-based correction:** Inspection of the retained run #20 Playwright traces found that both document-navigation attempts for all 17 UI scenarios returned HTTP 403 with `server=cloudflare` (34/34 responses). The previous analysis treated locator timeouts as evidence but did not inspect the response status in the traces. The RCA collector now preserves failed HTTP responses, and the deterministic analyzer emits a `THIRD_PARTY_DEPENDENCY` hypothesis at 0.85 confidence for this explicit Cloudflare signal, pending human review.
+- **Reviewer decision:** The repository owner approved the 17-scenario `THIRD_PARTY_DEPENDENCY` hypotheses for the observed responses and confirmed that this trace-based conversational correction qualifies as the fifth correction example. The decision does not attribute a cause to the Cloudflare denials or claim an OpenAI API prompt/output pair.
+- **Qualification:** This is a genuine conversational assistant correction, not an OpenAI API prompt/output pair. The trace proves the external 403 response, not why Cloudflare denied the requests.
 
 ## Evidence collection status
 
-Four genuine conversational correction examples are documented above. Evidence 5 is an additional human correction to deterministic RCA output, but may not satisfy a requirement specifically for an AI prompt/output pair. The repository owner should confirm evaluator acceptance; no evidence is represented as an OpenAI API prompt/output pair.
+Four previous conversational correction examples and this fifth owner-confirmed exchange are documented above. Evaluator scoring remains independent; no evidence is represented as an OpenAI API prompt/output pair.
+
+The earlier owner approval of the 10 explicit API HTTP 403 failures remains limited to those cases. The owner separately approved the new 17-scenario UI hypothesis based on the trace responses; see the [RCA human review record](./rca-human-review.md).
 
 The repository now supports model-backed RCA through OpenAI when the GitHub Actions secret is configured. A real provider request will save its sanitized, versioned prompt and validated output as `reports/rca/openai-evidence.json`. An opt-in synthetic provider smoke writes a separate `reports/rca/openai-smoke-evidence.json`; it is not a real application RCA or a qualifying correction example. Capture human challenges, corrections, and decisions only after an actual reviewed run.
